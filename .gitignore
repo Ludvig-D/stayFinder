@@ -1,0 +1,12 @@
+# deps
+node_modules/
+
+# env (each app has its own .env.example)
+.env
+.env.*
+!.env.example
+
+# misc
+.DS_Store
+.vscode/
+.idea/
