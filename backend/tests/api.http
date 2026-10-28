@@ -1,0 +1,104 @@
+# StayFinder API test calls (VS Code REST Client or httpyac).
+# Run top to bottom: the client keeps the session cookies between calls, like a browser.
+# Every call has a comment with the expected status.
+
+@baseUrl = http://localhost:3001
+
+###############################################################################
+# Auth (G1, G2)
+###############################################################################
+
+### Register a new user -> 201, Set-Cookie with the session
+# A new email each run, so the file can be run again
+# @name register
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "user{{$timestamp}}@stayfinder.test",
+  "password": "password123"
+}
+
+### Who am I, right after register -> 200 with the email above
+GET {{baseUrl}}/auth/me
+
+### Log out -> 204, cookies cleared
+POST {{baseUrl}}/auth/logout
+
+### Who am I, after logout -> 401
+GET {{baseUrl}}/auth/me
+
+### Log in with the same account -> 200
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{register.response.body.email}}",
+  "password": "password123"
+}
+
+### Who am I, after login -> 200
+GET {{baseUrl}}/auth/me
+
+### FAIL: register with an invalid email -> 400
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "not-an-email",
+  "password": "password123"
+}
+
+### FAIL: log in with an invalid email -> 400
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "not-an-email",
+  "password": "password123"
+}
+
+### FAIL: register with a too short password -> 400
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "short{{$timestamp}}@stayfinder.test",
+  "password": "123"
+}
+
+### FAIL: register without a body -> 400
+POST {{baseUrl}}/auth/register
+
+### FAIL: register with a body that isn't JSON -> 400
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+hello
+
+### FAIL: register an email that already exists -> 409
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "{{register.response.body.email}}",
+  "password": "password123"
+}
+
+### FAIL: log in with the wrong password -> 401
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{register.response.body.email}}",
+  "password": "wrongpassword"
+}
+
+### Log out again (end the session for the next calls) -> 204
+POST {{baseUrl}}/auth/logout
+
+### FAIL: who am I without a session -> 401
+GET {{baseUrl}}/auth/me
+
+### Log out when already logged out -> still 204 (harmless)
+POST {{baseUrl}}/auth/logout
