@@ -4,6 +4,7 @@ import type { PostgrestError } from '@supabase/supabase-js'
 import type { AppEnv, Supabase } from '../types/hono.js'
 import type { Tables } from '../types/database.types.js'
 import { requireUser } from '../middleware/requireUser.js'
+import { idSchema, invalid, readBody } from '../lib/http.js'
 
 // The DB row type from the generated types, so the API can't drift from the table (G16)
 type Listing = Tables<'listings'>
@@ -32,20 +33,8 @@ const querySchema = z.object({
   sort: z.enum(['price_asc', 'price_desc']).optional()
 })
 
-// An id that isn't a uuid can't exist, so it's a 404. It also stops Postgres' 22P02 error from becoming a 500.
-const idSchema = z.uuid()
-
-function invalid(c: Context, error: z.ZodError) {
-  return c.json({ error: 'Invalid data', details: z.flattenError(error).fieldErrors }, 400)
-}
-
 function notFound(c: Context) {
   return c.json({ error: 'Listing not found' }, 404)
-}
-
-// Reads the JSON body. Bad/missing JSON becomes null, which the schema then rejects with a 400.
-async function readBody(req: { json(): Promise<unknown> }): Promise<unknown> {
-  return req.json().catch(() => null)
 }
 
 // Errors from the DB on insert/update. Zod should catch bad data first, the DB is the backstop.

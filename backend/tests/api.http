@@ -290,3 +290,265 @@ DELETE {{baseUrl}}/listings/{{seaside.response.body.$[0].id}}
 
 ### Log out erik -> 204
 POST {{baseUrl}}/auth/logout
+
+###############################################################################
+# Bookings (G9, G10, G12, G14, VG1, VG2, VG3, VG5, VG6)
+# Dates are relative to today ({{$datetime "YYYY-MM-DD" 60 d}} = today + 60 days),
+# and every booking created here is deleted at the end, so the file can be run again.
+# The overlap tests use bookings made in this file, not the seeded ones (their dates move with the seed day).
+###############################################################################
+
+### Erik's "Townhouse in Malmö" (1100/night, max 4 guests, no bookings) -> 200
+# @name malmo
+GET {{baseUrl}}/listings?location=malmö
+
+### Anna's "Cabin by the slopes" (used for "can't book your own listing") -> 200
+# @name are
+GET {{baseUrl}}/listings?location=åre
+
+### FAIL: list bookings logged out -> 401
+GET {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+
+### FAIL: book logged out -> 401
+POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+Content-Type: application/json
+
+{ "email": "sara@stayfinder.test", "check_in": "{{$datetime "YYYY-MM-DD" 60 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 63 d}}", "guests": 3 }
+
+### FAIL: edit logged out -> 401
+PATCH {{baseUrl}}/bookings/00000000-0000-4000-8000-000000000000
+Content-Type: application/json
+
+{ "guests": 1 }
+
+### FAIL: delete logged out -> 401
+DELETE {{baseUrl}}/bookings/00000000-0000-4000-8000-000000000000
+
+### Log in as sara -> 200
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "sara@stayfinder.test",
+  "password": "password123"
+}
+
+### Sara books Malmö, 3 nights, 3 guests -> 201, total_price 3300 (VG6: 3 x 1100), guest_id = sara
+# @name saraBooking
+POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+Content-Type: application/json
+
+{ "email": "sara@stayfinder.test", "check_in": "{{$datetime "YYYY-MM-DD" 60 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 63 d}}", "guests": 3 }
+
+### Book with a fake price in the body -> 201, total_price 1100 (1 night), not 1 (VG6)
+# @name pricedBooking
+POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+Content-Type: application/json
+
+{ "email": "sara@stayfinder.test", "check_in": "{{$datetime "YYYY-MM-DD" 70 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 71 d}}", "guests": 1, "total_price": 1 }
+
+### FAIL: zero guests -> 400 (G10)
+POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+Content-Type: application/json
+
+{ "email": "sara@stayfinder.test", "check_in": "{{$datetime "YYYY-MM-DD" 80 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 81 d}}", "guests": 0 }
+
+### FAIL: invalid email -> 400 (G10)
+POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+Content-Type: application/json
+
+{ "email": "not-an-email", "check_in": "{{$datetime "YYYY-MM-DD" 80 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 81 d}}", "guests": 1 }
+
+### FAIL: check-out before check-in -> 400 (G10)
+POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+Content-Type: application/json
+
+{ "email": "sara@stayfinder.test", "check_in": "{{$datetime "YYYY-MM-DD" 81 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 80 d}}", "guests": 1 }
+
+### FAIL: a date that isn't YYYY-MM-DD -> 400 (G10)
+POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+Content-Type: application/json
+
+{ "email": "sara@stayfinder.test", "check_in": "tomorrow", "check_out": "{{$datetime "YYYY-MM-DD" 81 d}}", "guests": 1 }
+
+### FAIL: 5 guests, Malmö allows 4 -> 400 "This listing allows at most 4 guests" (VG3, checked in the DB)
+POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+Content-Type: application/json
+
+{ "email": "sara@stayfinder.test", "check_in": "{{$datetime "YYYY-MM-DD" 80 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 81 d}}", "guests": 5 }
+
+### FAIL: check-in yesterday -> 400 "Check-in date has already passed" (VG5, checked in the DB)
+POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+Content-Type: application/json
+
+{ "email": "sara@stayfinder.test", "check_in": "{{$datetime "YYYY-MM-DD" -1 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 2 d}}", "guests": 1 }
+
+### FAIL: book a listing that doesn't exist -> 404
+POST {{baseUrl}}/listings/00000000-0000-4000-8000-000000000000/bookings
+Content-Type: application/json
+
+{ "email": "sara@stayfinder.test", "check_in": "{{$datetime "YYYY-MM-DD" 80 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 81 d}}", "guests": 1 }
+
+### FAIL: list bookings of a listing that doesn't exist -> 404
+GET {{baseUrl}}/listings/00000000-0000-4000-8000-000000000000/bookings
+
+### Edit own booking onto dates that overlap its old ones -> 200, total_price still 3300 (VG2: no clash with itself)
+PATCH {{baseUrl}}/bookings/{{saraBooking.response.body.id}}
+Content-Type: application/json
+
+{ "check_in": "{{$datetime "YYYY-MM-DD" 61 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 64 d}}" }
+
+### Edit to 4 nights -> 200, total_price 4400 (VG6: recomputed from the new dates)
+PATCH {{baseUrl}}/bookings/{{saraBooking.response.body.id}}
+Content-Type: application/json
+
+{ "check_out": "{{$datetime "YYYY-MM-DD" 65 d}}" }
+
+### FAIL: edit with nothing to change -> 400
+PATCH {{baseUrl}}/bookings/{{saraBooking.response.body.id}}
+Content-Type: application/json
+
+{}
+
+### FAIL: un-cancel -> 400 (only "cancelled" is accepted)
+PATCH {{baseUrl}}/bookings/{{saraBooking.response.body.id}}
+Content-Type: application/json
+
+{ "status": "active" }
+
+### FAIL: cancel and edit in one call -> 400
+PATCH {{baseUrl}}/bookings/{{saraBooking.response.body.id}}
+Content-Type: application/json
+
+{ "status": "cancelled", "guests": 2 }
+
+### FAIL: edit a booking that doesn't exist -> 404
+PATCH {{baseUrl}}/bookings/00000000-0000-4000-8000-000000000000
+Content-Type: application/json
+
+{ "guests": 1 }
+
+### FAIL: delete a booking that doesn't exist -> 404
+DELETE {{baseUrl}}/bookings/00000000-0000-4000-8000-000000000000
+
+### Sara's bookings on "Seaside house" -> 200, two: [0] has already started (seed_past_booking.sql), [1] is in the future
+# @name seasideBookings
+GET {{baseUrl}}/listings/{{seaside.response.body.$[0].id}}/bookings
+
+### FAIL: edit a booking that has already started -> 400 (VG5)
+PATCH {{baseUrl}}/bookings/{{seasideBookings.response.body.$[0].id}}
+Content-Type: application/json
+
+{ "guests": 1 }
+
+### FAIL: cancel a booking that has already started -> 400 (VG5)
+PATCH {{baseUrl}}/bookings/{{seasideBookings.response.body.$[0].id}}
+Content-Type: application/json
+
+{ "status": "cancelled" }
+
+### FAIL: delete a booking that has already started -> 400 (VG5)
+DELETE {{baseUrl}}/bookings/{{seasideBookings.response.body.$[0].id}}
+
+### Log out sara, log in as anna -> 204, then 200
+POST {{baseUrl}}/auth/logout
+
+###
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "anna@stayfinder.test",
+  "password": "password123"
+}
+
+### Anna books Malmö on sara's check-out day -> 201 (VG2: check-out day is free, '[)')
+# @name annaBooking
+POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+Content-Type: application/json
+
+{ "email": "anna@stayfinder.test", "check_in": "{{$datetime "YYYY-MM-DD" 65 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 67 d}}", "guests": 2 }
+
+### FAIL: anna books dates inside sara's booking -> 409 (VG2)
+POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+Content-Type: application/json
+
+{ "email": "anna@stayfinder.test", "check_in": "{{$datetime "YYYY-MM-DD" 62 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 63 d}}", "guests": 2 }
+
+### FAIL: anna moves her booking one day earlier, into sara's -> 409 (VG2 on edit)
+PATCH {{baseUrl}}/bookings/{{annaBooking.response.body.id}}
+Content-Type: application/json
+
+{ "check_in": "{{$datetime "YYYY-MM-DD" 64 d}}" }
+
+### Anna sees only her own booking on Malmö, not sara's -> 200, one booking (VG1)
+GET {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+
+### FAIL: anna books her own listing -> 403
+POST {{baseUrl}}/listings/{{are.response.body.$[0].id}}/bookings
+Content-Type: application/json
+
+{ "email": "anna@stayfinder.test", "check_in": "{{$datetime "YYYY-MM-DD" 90 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 91 d}}", "guests": 1 }
+
+### FAIL: anna edits sara's booking, which she can't see -> 404 (VG1, not 403: bookings are private)
+PATCH {{baseUrl}}/bookings/{{seasideBookings.response.body.$[1].id}}
+Content-Type: application/json
+
+{ "guests": 1 }
+
+### FAIL: anna deletes sara's booking -> 404 (VG1)
+DELETE {{baseUrl}}/bookings/{{seasideBookings.response.body.$[1].id}}
+
+### Anna deletes her own booking -> 204
+DELETE {{baseUrl}}/bookings/{{annaBooking.response.body.id}}
+
+### Log out anna, log in as erik -> 204, then 200
+POST {{baseUrl}}/auth/logout
+
+###
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "erik@stayfinder.test",
+  "password": "password123"
+}
+
+### Erik owns Malmö, so he sees sara's two bookings on it -> 200 (VG1)
+GET {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+
+### FAIL: erik (the owner) edits sara's booking on his listing -> 403 (VG1: the owner can only read)
+PATCH {{baseUrl}}/bookings/{{seasideBookings.response.body.$[1].id}}
+Content-Type: application/json
+
+{ "guests": 1 }
+
+### FAIL: erik (the owner) deletes sara's booking -> 403 (VG1)
+DELETE {{baseUrl}}/bookings/{{seasideBookings.response.body.$[1].id}}
+
+### Log out erik, log in as sara -> 204, then 200
+POST {{baseUrl}}/auth/logout
+
+###
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "sara@stayfinder.test",
+  "password": "password123"
+}
+
+### Sara cancels her Malmö booking -> 200, status "cancelled"
+PATCH {{baseUrl}}/bookings/{{saraBooking.response.body.id}}
+Content-Type: application/json
+
+{ "status": "cancelled" }
+
+### Sara deletes it -> 204
+DELETE {{baseUrl}}/bookings/{{saraBooking.response.body.id}}
+
+### Sara deletes the fake-price booking -> 204
+DELETE {{baseUrl}}/bookings/{{pricedBooking.response.body.id}}
+
+### Log out sara -> 204
+POST {{baseUrl}}/auth/logout

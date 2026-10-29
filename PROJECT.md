@@ -61,8 +61,8 @@ Tick each box when the feature works **and** has a test call in the test file.
 
 **Quality**
 - [ ] **G13** The app shows a loading view and an error view while fetching data, plus its own page when a listing doesn't exist.
-- [ ] **G14** The API answers with the right status code on success, on creation, for invalid data, when the user isn't logged in, and when something is missing.
-- [ ] **G15** The database protects its own tables with access rules (RLS). It's not enough for only the API to protect them.
+- [x] **G14** The API answers with the right status code on success, on creation, for invalid data, when the user isn't logged in, and when something is missing.
+- [x] **G15** The database protects its own tables with access rules (RLS). It's not enough for only the API to protect them.
 - [ ] **G16** All data is typed in both backend and frontend.
 
 ### VG: our chosen five
@@ -223,3 +223,4 @@ These are pointers to look into, not finished answers. Check the current docs.
 | 2026-10-29 | Auth API built (`specs/archive/auth-api.md`): register, login, logout, me, per-request Supabase client, `requireUser`, CORS. All cases pass in `backend/tests/api.http`. G1/G2 not ticked until the frontend part (feature 8) |
 | 2026-10-29 | Auth UI built (`specs/archive/auth-ui.md`): login/register pages, navbar, `AuthProvider` asking `/auth/me`. Click-through passes. G1–G3 ticked. Way of working changed: the user specs, Claude builds. Spec/AI files now committed |
 | 2026-10-29 | Listings API built (`specs/archive/listings-api.md`, features 3 + 4): list with filters and sorting in the DB query, detail, create, update, delete. Non-owner → 403, missing → 404, listing with a started booking → 409. All 36 cases pass (`backend/tests/api.http`). G6 ticked. G4, G5, G8 wait for the frontend (feature 9); G14 and VG1 for bookings |
+| 2026-10-29 | Bookings API built (`specs/archive/bookings-api.md`, feature 7): list per listing, create, edit, cancel, delete. DB errors mapped: overlap → 409, capacity/past date → 400 with the trigger's message, own listing → 403, owner editing a guest's booking → 403, someone else's → 404. Shared helpers in `src/lib/http.ts`. All 50 cases pass. G14, G15 ticked. G9, G10, G12 and VG1–VG6 wait for the frontend (feature 11): the VG rules also need the frontend to show the result and errors |
