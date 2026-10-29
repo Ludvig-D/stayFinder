@@ -4,6 +4,7 @@ import { cors } from 'hono/cors'
 import { env } from './lib/env.js'
 import { supabaseMiddleware } from './lib/supabase.js'
 import { auth } from './routes/auth.js'
+import { listings } from './routes/listings.js'
 import type { AppEnv } from './types/hono.js'
 
 const app = new Hono<AppEnv>()
@@ -13,6 +14,7 @@ app.use(cors({ origin: env.FRONTEND_ORIGIN, credentials: true }))
 app.use(supabaseMiddleware)
 
 app.route('/auth', auth)
+app.route('/listings', listings)
 
 // Anything unexpected (Supabase down, a bug): log it, but don't leak details to the client
 app.onError((err, c) => {

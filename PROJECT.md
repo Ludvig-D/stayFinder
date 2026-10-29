@@ -49,7 +49,7 @@ Tick each box when the feature works **and** has a test call in the test file.
 **Listings**
 - [ ] **G4** Anyone can see a list of listings and a detail page for each one.
 - [ ] **G5** The list can be filtered by location, max price and number of guests.
-- [ ] **G6** Only logged-in users can create, update and delete listings. This must hold **both in the API and in the database**.
+- [x] **G6** Only logged-in users can create, update and delete listings. This must hold **both in the API and in the database**.
 - [ ] **G7** A logged-in user can create a new listing through a form in the frontend.
 - [ ] **G8** The list can be sorted by price, ascending or descending. **Sorting is done in the backend.**
 
@@ -222,3 +222,4 @@ These are pointers to look into, not finished answers. Check the current docs.
 | 2026-10-28 | All bookings DB cases verified (`supabase/tests/bookings.sql`, all cases pass). Specs moved to `specs/archive/`. Decided: deleting a listing with a started booking stays blocked → 409 |
 | 2026-10-29 | Auth API built (`specs/archive/auth-api.md`): register, login, logout, me, per-request Supabase client, `requireUser`, CORS. All cases pass in `backend/tests/api.http`. G1/G2 not ticked until the frontend part (feature 8) |
 | 2026-10-29 | Auth UI built (`specs/archive/auth-ui.md`): login/register pages, navbar, `AuthProvider` asking `/auth/me`. Click-through passes. G1–G3 ticked. Way of working changed: the user specs, Claude builds. Spec/AI files now committed |
+| 2026-10-29 | Listings API built (`specs/archive/listings-api.md`, features 3 + 4): list with filters and sorting in the DB query, detail, create, update, delete. Non-owner → 403, missing → 404, listing with a started booking → 409. All 36 cases pass (`backend/tests/api.http`). G6 ticked. G4, G5, G8 wait for the frontend (feature 9); G14 and VG1 for bookings |

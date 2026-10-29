@@ -102,3 +102,191 @@ GET {{baseUrl}}/auth/me
 
 ### Log out when already logged out -> still 204 (harmless)
 POST {{baseUrl}}/auth/logout
+
+###############################################################################
+# Listings (G4, G5, G6, G8, G14, VG1)
+# Needs `npm run seed` and supabase/tests/seed_past_booking.sql to have been run.
+# Starts logged out (the auth section ends with a logout).
+###############################################################################
+
+### All listings, logged out -> 200, newest first
+GET {{baseUrl}}/listings
+
+### Filter on location, part of the name, any case -> 200, only the two Stockholm listings
+GET {{baseUrl}}/listings?location=stock
+
+### Filter on max price -> 200, only listings at 900 or less
+GET {{baseUrl}}/listings?maxPrice=900
+
+### Filter on guests -> 200, only listings for 4 or more guests
+GET {{baseUrl}}/listings?guests=4
+
+### Filter + sort ascending -> 200, Stockholm: 650 before 950
+GET {{baseUrl}}/listings?location=stockholm&sort=price_asc
+
+### Filter + sort descending -> 200, Stockholm: 950 before 650
+GET {{baseUrl}}/listings?location=stockholm&sort=price_desc
+
+### Erik's "Apartment in Haga" (its id and owner are used below) -> 200
+# @name haga
+GET {{baseUrl}}/listings?location=göteborg
+
+### Erik's "Seaside house", which has a started booking (used for the 409 below) -> 200
+# @name seaside
+GET {{baseUrl}}/listings?location=visby
+
+### Detail page -> 200
+GET {{baseUrl}}/listings/{{haga.response.body.$[0].id}}
+
+### FAIL: max price that isn't a number -> 400
+GET {{baseUrl}}/listings?maxPrice=abc
+
+### FAIL: zero guests -> 400
+GET {{baseUrl}}/listings?guests=0
+
+### FAIL: unknown sort -> 400
+GET {{baseUrl}}/listings?sort=cheapest
+
+### FAIL: listing that doesn't exist -> 404
+GET {{baseUrl}}/listings/00000000-0000-4000-8000-000000000000
+
+### FAIL: id that isn't a uuid -> 404
+GET {{baseUrl}}/listings/not-a-uuid
+
+### FAIL: create a listing logged out -> 401 (G6, API part)
+POST {{baseUrl}}/listings
+Content-Type: application/json
+
+{
+  "title": "Should not be created",
+  "location": "Nowhere",
+  "price_per_night": 500,
+  "max_guests": 2
+}
+
+### FAIL: update a listing logged out -> 401
+PATCH {{baseUrl}}/listings/{{haga.response.body.$[0].id}}
+Content-Type: application/json
+
+{ "price_per_night": 1 }
+
+### FAIL: delete a listing logged out -> 401
+DELETE {{baseUrl}}/listings/{{haga.response.body.$[0].id}}
+
+### Log in as anna -> 200
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "anna@stayfinder.test",
+  "password": "password123"
+}
+
+### Create a listing, trying to make erik the owner -> 201, owner_id is still anna (VG1)
+# @name newListing
+POST {{baseUrl}}/listings
+Content-Type: application/json
+
+{
+  "title": "Test cottage",
+  "description": "Made by the test file",
+  "location": "Uppsala",
+  "price_per_night": 700,
+  "max_guests": 3,
+  "owner_id": "{{haga.response.body.$[0].owner_id}}"
+}
+
+### Update your own listing -> 200 with price_per_night 750
+PATCH {{baseUrl}}/listings/{{newListing.response.body.id}}
+Content-Type: application/json
+
+{ "price_per_night": 750 }
+
+### FAIL: create with price 0 -> 400
+POST {{baseUrl}}/listings
+Content-Type: application/json
+
+{
+  "title": "Free stay",
+  "location": "Uppsala",
+  "price_per_night": 0,
+  "max_guests": 2
+}
+
+### FAIL: create with 0 max guests -> 400
+POST {{baseUrl}}/listings
+Content-Type: application/json
+
+{
+  "title": "Nobody fits",
+  "location": "Uppsala",
+  "price_per_night": 500,
+  "max_guests": 0
+}
+
+### FAIL: create without a title -> 400
+POST {{baseUrl}}/listings
+Content-Type: application/json
+
+{
+  "location": "Uppsala",
+  "price_per_night": 500,
+  "max_guests": 2
+}
+
+### FAIL: create with a body that isn't JSON -> 400
+POST {{baseUrl}}/listings
+Content-Type: application/json
+
+hello
+
+### FAIL: update with nothing to change -> 400
+PATCH {{baseUrl}}/listings/{{newListing.response.body.id}}
+Content-Type: application/json
+
+{}
+
+### FAIL: anna updates erik's listing -> 403 (VG1, the DB's update policy changes 0 rows)
+PATCH {{baseUrl}}/listings/{{haga.response.body.$[0].id}}
+Content-Type: application/json
+
+{ "price_per_night": 1 }
+
+### FAIL: anna deletes erik's listing -> 403 (VG1)
+DELETE {{baseUrl}}/listings/{{haga.response.body.$[0].id}}
+
+### Erik's listing is unchanged after the two calls above -> 200, price_per_night still 800
+GET {{baseUrl}}/listings/{{haga.response.body.$[0].id}}
+
+### FAIL: update a listing that doesn't exist -> 404
+PATCH {{baseUrl}}/listings/00000000-0000-4000-8000-000000000000
+Content-Type: application/json
+
+{ "price_per_night": 1 }
+
+### FAIL: delete a listing that doesn't exist -> 404
+DELETE {{baseUrl}}/listings/00000000-0000-4000-8000-000000000000
+
+### Delete your own listing -> 204
+DELETE {{baseUrl}}/listings/{{newListing.response.body.id}}
+
+### The deleted listing is gone -> 404
+GET {{baseUrl}}/listings/{{newListing.response.body.id}}
+
+### Log out anna, log in as erik -> 204, then 200
+POST {{baseUrl}}/auth/logout
+
+###
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "erik@stayfinder.test",
+  "password": "password123"
+}
+
+### FAIL: erik deletes "Seaside house", which has a started booking -> 409
+DELETE {{baseUrl}}/listings/{{seaside.response.body.$[0].id}}
+
+### Log out erik -> 204
+POST {{baseUrl}}/auth/logout
