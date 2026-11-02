@@ -15,25 +15,27 @@ export function Navbar() {
   }
 
   return (
-    <nav className="flex items-center justify-between border-b border-zinc-200 px-6 py-4 dark:border-zinc-800">
-      <Link href="/" className="text-lg font-semibold">
+    <nav className="mx-auto flex w-full max-w-4xl flex-wrap items-center justify-between gap-4 px-6 py-6">
+      <Link href="/" className="text-xl font-bold tracking-tight">
         StayFinder
       </Link>
 
       {/* While loading, show no links, so a logged-in user never sees "Log in" flash by */}
       {!loading && (
-        <div className="flex items-center gap-4 text-sm">
+        <div className="flex items-center gap-5 text-sm">
           {user ? (
             <>
-              <span className="text-zinc-500">{user.email}</span>
-              <button onClick={handleLogout} className="underline">
+              <span className="text-fog">{user.email}</span>
+              <button onClick={handleLogout} className="text-lake hover:underline">
                 Log out
               </button>
             </>
           ) : (
             <>
-              <Link href="/login" className="underline">Log in</Link>
-              <Link href="/register" className="underline">Register</Link>
+              <Link href="/login" className="text-lake hover:underline">Log in</Link>
+              <Link href="/register" className="rounded-md border border-moss px-3 py-1.5 hover:border-fog">
+                Register
+              </Link>
             </>
           )}
         </div>

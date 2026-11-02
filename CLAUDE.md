@@ -19,6 +19,7 @@ Spec-driven development, **one feature at a time**. The user decides what gets b
 ## Claude's role
 
 - **The user specs, Claude builds.** Claude drafts the spec, surfaces the decisions the user has to make, and builds only what the approved spec says.
+- **No code before an explicit "build it".** When the user gives feedback on a spec (a change, a preference, a correction), update the spec and show it again. Don't treat feedback as approval. Only edit code after the user has clearly confirmed that the current spec should be built.
 - The user must be able to **explain every line at the oral exam**. Prefer plain, readable code over clever code, comment the *why*, and after building point out the parts worth reading closely (e.g. why a rule belongs in the API, the DB or both).
 - Stay on the current feature. Don't plan or build features nobody asked for.
 - Don't write big up-front specs. Specs are short and per feature, and the user drives them.

@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from './AuthProvider'
+import { buttonClass, inputClass } from '@/lib/styles'
 
 type Mode = 'login' | 'register'
 
@@ -49,24 +50,24 @@ export function AuthForm({ mode }: { mode: Mode }) {
   const title = mode === 'login' ? 'Log in' : 'Create an account'
 
   return (
-    <main className="mx-auto w-full max-w-sm px-6 py-16">
-      <h1 className="mb-6 text-2xl font-semibold">{title}</h1>
+    <main className="mx-auto w-full max-w-4xl px-6 pt-8 pb-16">
+      <h1 className="mb-8 text-3xl font-bold tracking-tight">{title}</h1>
 
       {/* The HTML rules (type, required, minLength) are only quick feedback. The API checks again. */}
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <label className="flex flex-col gap-1">
+      <form onSubmit={handleSubmit} className="flex max-w-sm flex-col gap-5">
+        <label className="flex flex-col gap-1.5 text-sm font-medium">
           Email
           <input
             type="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+            className={`${inputClass} text-base font-normal`}
           />
-          {fieldErrors.email && <span className="text-sm text-red-600">{fieldErrors.email[0]}</span>}
+          {fieldErrors.email && <span className="text-sm font-normal text-error">{fieldErrors.email[0]}</span>}
         </label>
 
-        <label className="flex flex-col gap-1">
+        <label className="flex flex-col gap-1.5 text-sm font-medium">
           Password
           <input
             type="password"
@@ -74,27 +75,27 @@ export function AuthForm({ mode }: { mode: Mode }) {
             minLength={6}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+            className={`${inputClass} text-base font-normal`}
           />
-          {fieldErrors.password && <span className="text-sm text-red-600">{fieldErrors.password[0]}</span>}
+          {fieldErrors.password && <span className="text-sm font-normal text-error">{fieldErrors.password[0]}</span>}
         </label>
 
-        {formError && <p className="text-sm text-red-600">{formError}</p>}
+        {formError && <p className="text-sm font-normal text-error">{formError}</p>}
 
         <button
           type="submit"
           disabled={submitting}
-          className="rounded bg-zinc-900 px-4 py-2 text-white disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
+          className={`${buttonClass} mt-2`}
         >
           {submitting ? '…' : title}
         </button>
       </form>
 
-      <p className="mt-6 text-sm">
+      <p className="mt-8 text-sm text-fog">
         {mode === 'login' ? (
-          <>No account? <Link href="/register" className="underline">Register</Link></>
+          <>No account? <Link href="/register" className="text-lake hover:underline">Register</Link></>
         ) : (
-          <>Already have an account? <Link href="/login" className="underline">Log in</Link></>
+          <>Already have an account? <Link href="/login" className="text-lake hover:underline">Log in</Link></>
         )}
       </p>
     </main>

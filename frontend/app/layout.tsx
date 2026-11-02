@@ -1,16 +1,13 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Familjen_Grotesk } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 import { Navbar } from "@/components/Navbar";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+// next/font downloads the font at build time and serves it from our own server.
+// It sets the CSS variable --font-familjen, which globals.css uses as the sans font.
+const familjen = Familjen_Grotesk({
+  variable: "--font-familjen",
   subsets: ["latin"],
 });
 
@@ -23,7 +20,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${familjen.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         {/* AuthProvider is a client component, but the layout itself stays a server component */}

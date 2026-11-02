@@ -47,11 +47,11 @@ Tick each box when the feature works **and** has a test call in the test file.
 - [x] **G3** The navigation shows different content for a logged-in user and a logged-out visitor.
 
 **Listings**
-- [ ] **G4** Anyone can see a list of listings and a detail page for each one.
-- [ ] **G5** The list can be filtered by location, max price and number of guests.
+- [x] **G4** Anyone can see a list of listings and a detail page for each one.
+- [x] **G5** The list can be filtered by location, max price and number of guests.
 - [x] **G6** Only logged-in users can create, update and delete listings. This must hold **both in the API and in the database**.
 - [ ] **G7** A logged-in user can create a new listing through a form in the frontend.
-- [ ] **G8** The list can be sorted by price, ascending or descending. **Sorting is done in the backend.**
+- [x] **G8** The list can be sorted by price, ascending or descending. **Sorting is done in the backend.**
 
 **Bookings**
 - [ ] **G9** A logged-in user can book a listing from its detail page. A logged-out visitor is asked to log in.
@@ -60,7 +60,7 @@ Tick each box when the feature works **and** has a test call in the test file.
 - [ ] **G12** A logged-in user can see, edit and delete bookings for a listing.
 
 **Quality**
-- [ ] **G13** The app shows a loading view and an error view while fetching data, plus its own page when a listing doesn't exist.
+- [x] **G13** The app shows a loading view and an error view while fetching data, plus its own page when a listing doesn't exist.
 - [x] **G14** The API answers with the right status code on success, on creation, for invalid data, when the user isn't logged in, and when something is missing.
 - [x] **G15** The database protects its own tables with access rules (RLS). It's not enough for only the API to protect them.
 - [ ] **G16** All data is typed in both backend and frontend.
@@ -224,3 +224,5 @@ These are pointers to look into, not finished answers. Check the current docs.
 | 2026-10-29 | Auth UI built (`specs/archive/auth-ui.md`): login/register pages, navbar, `AuthProvider` asking `/auth/me`. Click-through passes. G1–G3 ticked. Way of working changed: the user specs, Claude builds. Spec/AI files now committed |
 | 2026-10-29 | Listings API built (`specs/archive/listings-api.md`, features 3 + 4): list with filters and sorting in the DB query, detail, create, update, delete. Non-owner → 403, missing → 404, listing with a started booking → 409. All 36 cases pass (`backend/tests/api.http`). G6 ticked. G4, G5, G8 wait for the frontend (feature 9); G14 and VG1 for bookings |
 | 2026-10-29 | Bookings API built (`specs/archive/bookings-api.md`, feature 7): list per listing, create, edit, cancel, delete. DB errors mapped: overlap → 409, capacity/past date → 400 with the trigger's message, own listing → 403, owner editing a guest's booking → 403, someone else's → 404. Shared helpers in `src/lib/http.ts`. All 50 cases pass. G14, G15 ticked. G9, G10, G12 and VG1–VG6 wait for the frontend (feature 11): the VG rules also need the frontend to show the result and errors |
+| 2026-10-29 | Listings UI built (`specs/archive/listings-ui.md`, feature 9): list on `/` as a server component, filters + sort in the URL (GET form, the API does the filtering and sorting), detail page `/listings/[id]` with a booking placeholder, loading/error/not-found views per segment. All click-through cases pass. G4, G5, G8, G13 ticked |
+| 2026-11-02 | UI styling pass (`specs/archive/ui-styling.md`): dark-only Nordic palette, Familjen Grotesk, Airbnb-style search bar, sort dropdown above the list (`SortSelect`), listings as rows. No behaviour change, no new criteria. Rule added to `CLAUDE.md`: no code before the user says to build the spec |

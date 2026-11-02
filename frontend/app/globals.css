@@ -1,26 +1,51 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* The site is dark only: one palette, no light mode and no prefers-color-scheme switch.
+   Each colour here becomes a Tailwind class, e.g. --color-night → bg-night, text-night. */
+@theme {
+  --color-night: #12211c;      /* page background */
+  --color-pine: #1a2e27;       /* raised surfaces: inputs, placeholders */
+  --color-moss: #2e453c;       /* borders and dividers */
+  --color-birch: #e8ece6;      /* text, primary buttons */
+  --color-fog: #9dafa6;        /* secondary text */
+  --color-lake: #7fb3d5;       /* links, focus ring */
+  --color-cloudberry: #f0b43c; /* the one accent: prices and filter values */
+  --color-error: #f2827a;      /* form errors */
 }
 
+/* inline: --font-familjen is set by next/font in layout.tsx, so it must be read at runtime */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-familjen);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Tells the browser the page is dark, so native parts (select menus, scrollbars) are dark too */
+html {
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-night);
+  color: var(--color-birch);
+  font-family: var(--font-sans);
+}
+
+/* Number fields: hide the browser's up/down arrows, they look out of place in the search bar */
+input[type="number"] {
+  appearance: textfield;
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+/* Every link, button and field shows where the keyboard focus is.
+   In @layer base so a Tailwind class can turn it off: a rule outside a layer always beats
+   Tailwind's utilities, whatever its specificity. The search bar uses that, because there the
+   whole segment lights up instead (focus-within:bg-pine in FilterBar). */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-lake);
+    outline-offset: 3px;
+  }
 }
