@@ -397,29 +397,47 @@ Content-Type: application/json
 
 { "email": "sara@stayfinder.test", "check_in": "{{$datetime "YYYY-MM-DD" 70 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 71 d}}", "guests": 1, "total_price": 1 }
 
-### FAIL: zero guests -> 400 (G10)
+### FAIL: zero guests -> 400, details.guests: "At least 1 guest is required" (G10)
 POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
 Content-Type: application/json
 
 { "email": "sara@stayfinder.test", "check_in": "{{$datetime "YYYY-MM-DD" 80 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 81 d}}", "guests": 0 }
 
-### FAIL: invalid email -> 400 (G10)
+### FAIL: invalid email -> 400, details.email: "Enter a valid email address" (G10)
 POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
 Content-Type: application/json
 
 { "email": "not-an-email", "check_in": "{{$datetime "YYYY-MM-DD" 80 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 81 d}}", "guests": 1 }
 
-### FAIL: check-out before check-in -> 400 (G10)
+### FAIL: check-out before check-in -> 400, details.check_out: "Check-out must be after check-in" (G10)
 POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
 Content-Type: application/json
 
 { "email": "sara@stayfinder.test", "check_in": "{{$datetime "YYYY-MM-DD" 81 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 80 d}}", "guests": 1 }
 
-### FAIL: a date that isn't YYYY-MM-DD -> 400 (G10)
+### FAIL: a date that isn't YYYY-MM-DD -> 400, details.check_in: "Choose a check-in date" (G10)
 POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
 Content-Type: application/json
 
 { "email": "sara@stayfinder.test", "check_in": "tomorrow", "check_out": "{{$datetime "YYYY-MM-DD" 81 d}}", "guests": 1 }
+
+### FAIL: guests not a whole number -> 400, details.guests: "Guests must be a whole number" (G10)
+POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+Content-Type: application/json
+
+{ "email": "sara@stayfinder.test", "check_in": "{{$datetime "YYYY-MM-DD" 80 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 81 d}}", "guests": 1.5 }
+
+### FAIL: email missing -> 400, details.email: "Enter a valid email address" (G10)
+POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+Content-Type: application/json
+
+{ "check_in": "{{$datetime "YYYY-MM-DD" 80 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 81 d}}", "guests": 1 }
+
+### FAIL: check-in missing -> 400, details.check_in: "Choose a check-in date" (G10)
+POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+Content-Type: application/json
+
+{ "email": "sara@stayfinder.test", "check_out": "{{$datetime "YYYY-MM-DD" 81 d}}", "guests": 1 }
 
 ### FAIL: 5 guests, Malmö allows 4 -> 400 "This listing allows at most 4 guests" (VG3, checked in the DB)
 POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings

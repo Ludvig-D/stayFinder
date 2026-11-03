@@ -54,26 +54,26 @@ Tick each box when the feature works **and** has a test call in the test file.
 - [x] **G8** The list can be sorted by price, ascending or descending. **Sorting is done in the backend.**
 
 **Bookings**
-- [ ] **G9** A logged-in user can book a listing from its detail page. A logged-out visitor is asked to log in.
-- [ ] **G10** A booking with invalid data is rejected (e.g. invalid email, zero guests, check-in after check-out), and the error is shown understandably in the form.
-- [ ] **G11** The booking form shows the number of nights and the total price before the user books.
-- [ ] **G12** A logged-in user can see, edit and delete bookings for a listing.
+- [x] **G9** A logged-in user can book a listing from its detail page. A logged-out visitor is asked to log in.
+- [x] **G10** A booking with invalid data is rejected (e.g. invalid email, zero guests, check-in after check-out), and the error is shown understandably in the form.
+- [x] **G11** The booking form shows the number of nights and the total price before the user books.
+- [x] **G12** A logged-in user can see, edit and delete bookings for a listing.
 
 **Quality**
 - [x] **G13** The app shows a loading view and an error view while fetching data, plus its own page when a listing doesn't exist.
 - [x] **G14** The API answers with the right status code on success, on creation, for invalid data, when the user isn't logged in, and when something is missing.
 - [x] **G15** The database protects its own tables with access rules (RLS). It's not enough for only the API to protect them.
-- [ ] **G16** All data is typed in both backend and frontend.
+- [x] **G16** All data is typed in both backend and frontend.
 
 ### VG: our chosen five
 
 All VG rules must hold **in the API and the database**, even when someone calls the API directly without the frontend. The frontend only has to show the result and any errors.
 
-- [ ] **VG1 Ownership.** A listing belongs to the user who created it, and a booking belongs to the user who made it. Only the owner can update or delete their listing. A guest sees only their own bookings, and the listing owner sees all bookings for that listing. **The database must guarantee this**, not just the API.
-- [ ] **VG2 No double bookings.** A listing can't be booked for dates that overlap an existing booking that isn't cancelled. This applies when a booking is created and when it's edited. A booking being edited must not count as a clash with itself. A clash is rejected with its own clear error.
-- [ ] **VG3 Capacity.** The number of guests can't exceed the listing's max. The check uses the listing's current data **in the database**, not anything the client sends.
-- [ ] **VG5 Time rules.** A check-in date that has already passed is rejected, and a booking whose check-in has passed can't be edited or cancelled.
-- [ ] **VG6 Price computed on the server.** The booking's total price is computed in the backend from the number of nights and the listing's price, and saved on the booking. A price sent by the client is ignored. If the listing's price changes later, existing bookings are not affected.
+- [x] **VG1 Ownership.** A listing belongs to the user who created it, and a booking belongs to the user who made it. Only the owner can update or delete their listing. A guest sees only their own bookings, and the listing owner sees all bookings for that listing. **The database must guarantee this**, not just the API.
+- [x] **VG2 No double bookings.** A listing can't be booked for dates that overlap an existing booking that isn't cancelled. This applies when a booking is created and when it's edited. A booking being edited must not count as a clash with itself. A clash is rejected with its own clear error.
+- [x] **VG3 Capacity.** The number of guests can't exceed the listing's max. The check uses the listing's current data **in the database**, not anything the client sends.
+- [x] **VG5 Time rules.** A check-in date that has already passed is rejected, and a booking whose check-in has passed can't be edited or cancelled.
+- [x] **VG6 Price computed on the server.** The booking's total price is computed in the backend from the number of nights and the listing's price, and saved on the booking. A price sent by the client is ignored. If the listing's price changes later, existing bookings are not affected.
 
 ### Not chosen (could be extra margin if time allows)
 - **VG4 Status flow with roles.** Only the owner can confirm, and the guest and owner can both cancel. Pending can become confirmed or cancelled, confirmed can become cancelled, and cancelled is final.
@@ -227,3 +227,4 @@ These are pointers to look into, not finished answers. Check the current docs.
 | 2026-10-29 | Listings UI built (`specs/archive/listings-ui.md`, feature 9): list on `/` as a server component, filters + sort in the URL (GET form, the API does the filtering and sorting), detail page `/listings/[id]` with a booking placeholder, loading/error/not-found views per segment. All click-through cases pass. G4, G5, G8, G13 ticked |
 | 2026-11-02 | UI styling pass (`specs/archive/ui-styling.md`): dark-only Nordic palette, Familjen Grotesk, Airbnb-style search bar, sort dropdown above the list (`SortSelect`), listings as rows. No behaviour change, no new criteria. Rule added to `CLAUDE.md`: no code before the user says to build the spec |
 | 2026-11-03 | Create listing form built (`specs/archive/create-listing-ui.md`, feature 10): `/listings/new` for logged-in users, logged-out visitors are redirected to `/login?next=` and come back after logging in or registering (`safeNext` only follows our own paths). Custom Zod messages in the listings API, shown under each field. 42 listings calls + 31 browser checks pass. G7 ticked |
+| 2026-11-03 | Booking form + bookings list built (`specs/archive/booking-ui.md`, feature 11): `BookingSection` on the detail page with a logged-out, guest and owner view. Price preview (G11), edit sends only changed fields so the saved price isn't recomputed (VG6), cancel, delete with confirm. Started bookings show "Started" with no buttons, using today in Stockholm (VG5, UX only, the DB trigger is the guard). Custom Zod messages in the bookings API. 108 `api.http` calls + 47 browser checks pass. G9–G12, G16, VG1, VG2, VG3, VG5, VG6 ticked |

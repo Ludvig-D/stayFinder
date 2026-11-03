@@ -3,5 +3,9 @@
 export const buttonClass =
   'rounded-md bg-birch px-5 py-2.5 font-semibold text-night hover:bg-white disabled:opacity-50'
 
+// Small actions next to a booking (Edit, Cancel, Delete): look like links, but they're buttons
+// because they do something instead of going somewhere
+export const textButtonClass = 'text-sm text-lake hover:underline disabled:opacity-50'
+
 export const inputClass =
   'rounded-md border border-moss bg-pine px-3 py-2 text-birch focus:border-lake'

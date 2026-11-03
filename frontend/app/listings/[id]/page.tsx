@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getListing } from '@/lib/listings'
+import { BookingSection } from '@/components/BookingSection'
 
 // Server component, like the list. loading.tsx and error.tsx from app/ cover this page too.
 export default async function ListingPage({ params }: PageProps<'/listings/[id]'>) {
@@ -37,9 +38,10 @@ export default async function ListingPage({ params }: PageProps<'/listings/[id]'
         <p className="mt-8 max-w-prose text-lg leading-relaxed whitespace-pre-line">{listing.description}</p>
       )}
 
-      {/* Placeholder: the booking form comes in feature 11 */}
-      <section className="mt-12 max-w-prose rounded-lg border border-dashed border-moss bg-pine p-6 text-fog">
-        Booking coming soon.
+      {/* G9–G12: a client component, because the bookings calls need the browser's session cookies.
+          The listing is passed down, so the form knows the price (G11), max guests and the owner. */}
+      <section className="mt-12 max-w-2xl">
+        <BookingSection listing={listing} />
       </section>
     </main>
   )

@@ -12,11 +12,14 @@ type Booking = Tables<'bookings'>
 // G10: the simple rules on one booking. Capacity (VG3), overlap (VG2) and "not in the past" (VG5)
 // are NOT here: they need the listing, the other bookings or today's date, which only the DB has reliably.
 // No total_price: Zod drops unknown keys, and the DB computes the price itself (VG6).
+// The messages are written for people: the booking form shows them as they are, under each field.
+// The message on the type itself (z.email('…')) is used when the field is missing or the wrong type.
 const fieldsSchema = z.object({
-  email: z.email(),
-  check_in: z.iso.date(), // YYYY-MM-DD
-  check_out: z.iso.date(),
-  guests: z.int().min(1)
+  email: z.email('Enter a valid email address'),
+  check_in: z.iso.date('Choose a check-in date'), // YYYY-MM-DD
+  check_out: z.iso.date('Choose a check-out date'),
+  // z.int() rejects 1.5 and "2" (a string) as well as a missing value
+  guests: z.int('Guests must be a whole number').min(1, 'At least 1 guest is required')
 })
 
 // YYYY-MM-DD strings sort like the dates they stand for, so > compares them correctly.

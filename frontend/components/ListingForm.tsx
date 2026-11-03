@@ -3,14 +3,9 @@
 import { useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from './AuthProvider'
+import { FieldError } from './FieldError'
 import { createListing } from '@/lib/listings'
 import { buttonClass, inputClass } from '@/lib/styles'
-
-// The API's message(s) for one field, e.g. "Price must be at least 1 kr"
-function FieldError({ messages }: { messages: string[] | undefined }) {
-  if (!messages) return null
-  return <span className="text-sm font-normal text-error">{messages[0]}</span>
-}
 
 // G7: create a listing. Only rendered for a logged-in user (app/listings/new/page.tsx checks that).
 export function ListingForm() {
