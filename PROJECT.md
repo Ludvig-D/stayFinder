@@ -50,7 +50,7 @@ Tick each box when the feature works **and** has a test call in the test file.
 - [x] **G4** Anyone can see a list of listings and a detail page for each one.
 - [x] **G5** The list can be filtered by location, max price and number of guests.
 - [x] **G6** Only logged-in users can create, update and delete listings. This must hold **both in the API and in the database**.
-- [ ] **G7** A logged-in user can create a new listing through a form in the frontend.
+- [x] **G7** A logged-in user can create a new listing through a form in the frontend.
 - [x] **G8** The list can be sorted by price, ascending or descending. **Sorting is done in the backend.**
 
 **Bookings**
@@ -226,3 +226,4 @@ These are pointers to look into, not finished answers. Check the current docs.
 | 2026-10-29 | Bookings API built (`specs/archive/bookings-api.md`, feature 7): list per listing, create, edit, cancel, delete. DB errors mapped: overlap → 409, capacity/past date → 400 with the trigger's message, own listing → 403, owner editing a guest's booking → 403, someone else's → 404. Shared helpers in `src/lib/http.ts`. All 50 cases pass. G14, G15 ticked. G9, G10, G12 and VG1–VG6 wait for the frontend (feature 11): the VG rules also need the frontend to show the result and errors |
 | 2026-10-29 | Listings UI built (`specs/archive/listings-ui.md`, feature 9): list on `/` as a server component, filters + sort in the URL (GET form, the API does the filtering and sorting), detail page `/listings/[id]` with a booking placeholder, loading/error/not-found views per segment. All click-through cases pass. G4, G5, G8, G13 ticked |
 | 2026-11-02 | UI styling pass (`specs/archive/ui-styling.md`): dark-only Nordic palette, Familjen Grotesk, Airbnb-style search bar, sort dropdown above the list (`SortSelect`), listings as rows. No behaviour change, no new criteria. Rule added to `CLAUDE.md`: no code before the user says to build the spec |
+| 2026-11-03 | Create listing form built (`specs/archive/create-listing-ui.md`, feature 10): `/listings/new` for logged-in users, logged-out visitors are redirected to `/login?next=` and come back after logging in or registering (`safeNext` only follows our own paths). Custom Zod messages in the listings API, shown under each field. 42 listings calls + 31 browser checks pass. G7 ticked |

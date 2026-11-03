@@ -29,6 +29,16 @@ export type Listing = {
   created_at: string
 }
 
+// The body of POST /listings. No id, owner_id or created_at: the DB sets those itself.
+// An empty description is sent as "", and the API saves it as null.
+export type NewListing = {
+  title: string
+  description: string
+  location: string
+  price_per_night: number
+  max_guests: number
+}
+
 // The filters as they arrive in the URL. All strings: this is raw text the user typed,
 // and the API is what checks it (Zod → 400), so the frontend doesn't validate it a second time.
 export type ListingFilters = {

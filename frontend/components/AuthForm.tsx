@@ -5,11 +5,13 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from './AuthProvider'
 import { buttonClass, inputClass } from '@/lib/styles'
+import { withNext } from '@/lib/redirect'
 
 type Mode = 'login' | 'register'
 
-// One form for both pages: same fields, only the API call and the texts differ
-export function AuthForm({ mode }: { mode: Mode }) {
+// One form for both pages: same fields, only the API call and the texts differ.
+// `next` is where to go after logging in. The page has already checked it with safeNext().
+export function AuthForm({ mode, next }: { mode: Mode; next: string }) {
   const { user, login, register } = useAuth()
   const router = useRouter()
 
@@ -19,10 +21,11 @@ export function AuthForm({ mode }: { mode: Mode }) {
   const [formError, setFormError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({})
 
-  // Logged in (already, or just now after submitting) → nothing to do here, go home
+  // Logged in (already, or just now after submitting) → nothing to do here, go on to `next` (home by default).
+  // replace, not push: the back button shouldn't lead back to the login page.
   useEffect(() => {
-    if (user) router.replace('/')
-  }, [user, router])
+    if (user) router.replace(next)
+  }, [user, router, next])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -93,9 +96,9 @@ export function AuthForm({ mode }: { mode: Mode }) {
 
       <p className="mt-8 text-sm text-fog">
         {mode === 'login' ? (
-          <>No account? <Link href="/register" className="text-lake hover:underline">Register</Link></>
+          <>No account? <Link href={withNext('/register', next)} className="text-lake hover:underline">Register</Link></>
         ) : (
-          <>Already have an account? <Link href="/login" className="text-lake hover:underline">Log in</Link></>
+          <>Already have an account? <Link href={withNext('/login', next)} className="text-lake hover:underline">Log in</Link></>
         )}
       </p>
     </main>

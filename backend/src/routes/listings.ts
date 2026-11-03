@@ -11,13 +11,23 @@ type Listing = Tables<'listings'>
 
 // Same limits as the DB's CHECK constraints (plus lengths), checked here first for a clear 400.
 // No owner_id: Zod drops unknown keys, and the DB sets owner_id = auth.uid() itself.
+// The messages are written for people: the frontend shows them as they are, under each field.
+// The message on the type itself (z.string('…')) is used when the field is missing or the wrong type.
 const createSchema = z.object({
-  title: z.string().trim().min(1).max(100),
+  // trim() runs before min(1), so a title of only spaces counts as empty
+  title: z.string('Title is required').trim()
+    .min(1, 'Title is required')
+    .max(100, 'Title can be at most 100 characters'),
   // An empty description is saved as null, so "no description" has only one form
-  description: z.string().trim().max(1000).nullable().transform((value) => value || null).optional(),
-  location: z.string().trim().min(1).max(100),
-  price_per_night: z.int().min(1),
-  max_guests: z.int().min(1)
+  description: z.string().trim()
+    .max(1000, 'Description can be at most 1000 characters')
+    .nullable().transform((value) => value || null).optional(),
+  location: z.string('Location is required').trim()
+    .min(1, 'Location is required')
+    .max(100, 'Location can be at most 100 characters'),
+  // z.int() rejects 1.5 and "500" (a string) as well as a missing value
+  price_per_night: z.int('Price must be a whole number').min(1, 'Price must be at least 1 kr'),
+  max_guests: z.int('Max guests must be a whole number').min(1, 'Max guests must be at least 1')
 })
 
 // PATCH: any of the create fields, but at least one, otherwise there's nothing to update

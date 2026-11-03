@@ -203,6 +203,7 @@ Content-Type: application/json
 { "price_per_night": 750 }
 
 ### FAIL: create with price 0 -> 400
+# details.price_per_night: "Price must be at least 1 kr"
 POST {{baseUrl}}/listings
 Content-Type: application/json
 
@@ -214,6 +215,7 @@ Content-Type: application/json
 }
 
 ### FAIL: create with 0 max guests -> 400
+# details.max_guests: "Max guests must be at least 1"
 POST {{baseUrl}}/listings
 Content-Type: application/json
 
@@ -225,6 +227,7 @@ Content-Type: application/json
 }
 
 ### FAIL: create without a title -> 400
+# details.title: "Title is required"
 POST {{baseUrl}}/listings
 Content-Type: application/json
 
@@ -232,6 +235,53 @@ Content-Type: application/json
   "location": "Uppsala",
   "price_per_night": 500,
   "max_guests": 2
+}
+
+### FAIL: create with a title of only spaces -> 400
+# The API trims it first, so it counts as empty. details.title: "Title is required"
+POST {{baseUrl}}/listings
+Content-Type: application/json
+
+{
+  "title": "   ",
+  "location": "Uppsala",
+  "price_per_night": 500,
+  "max_guests": 2
+}
+
+### FAIL: create with a title of 101 characters -> 400
+# details.title: "Title can be at most 100 characters"
+POST {{baseUrl}}/listings
+Content-Type: application/json
+
+{
+  "title": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+  "location": "Uppsala",
+  "price_per_night": 500,
+  "max_guests": 2
+}
+
+### FAIL: create with a price that isn't a whole number -> 400
+# details.price_per_night: "Price must be a whole number"
+POST {{baseUrl}}/listings
+Content-Type: application/json
+
+{
+  "title": "Half price",
+  "location": "Uppsala",
+  "price_per_night": 1.5,
+  "max_guests": 2
+}
+
+### FAIL: create without max guests -> 400
+# details.max_guests: "Max guests must be a whole number"
+POST {{baseUrl}}/listings
+Content-Type: application/json
+
+{
+  "title": "No guests given",
+  "location": "Uppsala",
+  "price_per_night": 500
 }
 
 ### FAIL: create with a body that isn't JSON -> 400

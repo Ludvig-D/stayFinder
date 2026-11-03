@@ -1,5 +1,5 @@
 import { apiFetch, type ApiResult } from './api'
-import type { Listing, ListingFilters } from './types'
+import type { Listing, ListingFilters, NewListing } from './types'
 
 // The keys the API understands. Anything else in the URL is ignored.
 const FILTER_KEYS = ['location', 'maxPrice', 'guests', 'sort'] as const
@@ -31,4 +31,10 @@ export function getListings(filters: ListingFilters): Promise<ApiResult<Listing[
 export function getListing(id: string): Promise<ApiResult<Listing>> {
   // encodeURIComponent: the id comes from the URL, so it can contain anything
   return apiFetch<Listing>(`/listings/${encodeURIComponent(id)}`)
+}
+
+// G7. Runs in the browser, so the session cookies go along (apiFetch sends credentials: 'include').
+// The API answers 201 with the new listing, 400 with field errors, or 401 if not logged in.
+export function createListing(listing: NewListing): Promise<ApiResult<Listing>> {
+  return apiFetch<Listing>('/listings', { method: 'POST', body: listing })
 }

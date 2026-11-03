@@ -25,6 +25,7 @@ export function Navbar() {
         <div className="flex items-center gap-5 text-sm">
           {user ? (
             <>
+              <Link href="/listings/new" className="text-lake hover:underline">New listing</Link>
               <span className="text-fog">{user.email}</span>
               <button onClick={handleLogout} className="text-lake hover:underline">
                 Log out
