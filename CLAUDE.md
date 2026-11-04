@@ -41,6 +41,6 @@ Run each from its own folder (npm, no workspaces):
 - Backend (`backend/`, http://localhost:3001): `npm run dev` · `npm run build` · typecheck `npx tsc --noEmit`
 - Frontend (`frontend/`, http://localhost:3000): `npm run dev` · `npm run build` · `npm run lint` · typecheck `npx tsc --noEmit`
 - Supabase types: `npx supabase gen types typescript --project-id <id>` (run in `backend/`)
-- API tests: `backend/tests/api.http` (httpyac syntax: VS Code "httpYac" extension, or `npx httpyac send tests/api.http --all` in `backend/`), run top to bottom with the backend running. Not VS Code REST Client: its `{{name.response.body...}}` syntax differs
+- API tests: `backend/tests/stayfinder.postman_collection.json` (Postman collection v2.1). Postman desktop: Import → Run collection, or `npx newman run tests/stayfinder.postman_collection.json` in `backend/`. Run top to bottom on a fresh seed with the backend running. Each request checks its expected status with `pm.test`; values for later calls are saved with `pm.collectionVariables.set`
 
 Git: `CLAUDE.md`, `PROJECT.md`, `specs/`, `.claude/` and `.mcp.json` are committed, so the spec-driven process is part of the repo.

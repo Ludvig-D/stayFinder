@@ -26,6 +26,7 @@ Build StayFinder as a working booking service, with both a backend and a fronten
 | Target grade | **VG**: all of G1–G16 plus **VG1, VG2, VG3, VG5, VG6**. That's 5, one more than the 4 required, as margin. |
 | Repo layout | **One repo**: `backend/` and `frontend/` folders |
 | Way of working | **Spec-driven, one feature at a time** (see §5) |
+| API test file | **Postman collection** (replaced the httpyac `api.http` on 2026-11-04): each call checks its own status, so results are easy to read and the teacher can run it with one click |
 | Deleting a listing with a started booking | **Blocked** by the DB (`bookings_time` fires on the cascade, `23514`). Kept on purpose to protect booking history; the API returns 409 |
 
 **Stack**
@@ -201,7 +202,7 @@ These are pointers to look into, not finished answers. Check the current docs.
 - Special files: `loading.tsx` (loading view), `error.tsx` (error view, must be a client component), and `not-found.tsx` together with `notFound()` for the "listing doesn't exist" page.
 
 **Test file**
-- An `.http` file (VS Code REST Client or httpyac) is easy to read and show. Write one call per rule, with a comment saying the expected result. Include **both** the call that should succeed and the ones that should be rejected.
+- The test file is a **Postman collection** (`backend/tests/stayfinder.postman_collection.json`). Each request is named after its expected result and checks its status code itself, so the Collection Runner shows pass/fail per call. Include **both** the call that should succeed and the ones that should be rejected.
 - For VG5 you need a booking whose check-in has *already passed*, which your own rules won't let you create through the API. Think about how to set up that test data.
 
 **Docs**
@@ -230,3 +231,4 @@ These are pointers to look into, not finished answers. Check the current docs.
 | 2026-11-03 | Booking form + bookings list built (`specs/archive/booking-ui.md`, feature 11): `BookingSection` on the detail page with a logged-out, guest and owner view. Price preview (G11), edit sends only changed fields so the saved price isn't recomputed (VG6), cancel, delete with confirm. Started bookings show "Started" with no buttons, using today in Stockholm (VG5, UX only, the DB trigger is the guard). Custom Zod messages in the bookings API. 108 `api.http` calls + 47 browser checks pass. G9–G12, G16, VG1, VG2, VG3, VG5, VG6 ticked |
 | 2026-11-03 | Seed data redone (`specs/archive/seed.md`): all data wiped with `supabase/seed/reset.sql` (as postgres, `bookings_time` disabled only inside the transaction), `seed.ts` rewritten to expect an empty DB, 5 users / 12 listings / 12 bookings. Seeding is 3 steps (reset → `npm run seed` → `supabase/seed/past_booking.sql`), documented in `backend/README.md`. All 108 `api.http` calls + 14 browser checks pass. No new criteria |
 | 2026-11-04 | My page built (`specs/archive/my-page.md`, extra): the email in the navbar links to `/me` with "My listings" and "My bookings" (read-only, rows link to the listing). New `GET /me/listings` and `GET /me/bookings` (`requireUser`, 401 logged out). The `guest_id` filter only picks *my* bookings; RLS still decides what may be seen (VG1). All 125 `api.http` calls + 15 browser checks pass. No new criteria |
+| 2026-11-04 | API tests moved to Postman (`specs/archive/postman-tests.md`): `backend/tests/api.http` replaced by `backend/tests/stayfinder.postman_collection.json`, same 125 calls in folders Auth / Listings / Bookings / My page. Each call checks its status (`pm.test`), 31 also check a value in the body (prices, counts, error messages). Relative dates come from a collection pre-request script. Newman: 125 requests, 156 assertions, 0 failed, two runs in a row. No new criteria |

@@ -25,4 +25,11 @@ Every user's password is `password123`:
 | sara@stayfinder.test | guest |
 | lisa@stayfinder.test | guest |
 
-`tests/api.http` expects a fresh seed. Each run registers one new `user<timestamp>@stayfinder.test` and deletes everything else it creates.
+## API tests
+
+`tests/stayfinder.postman_collection.json` has every test call: for each rule, a call that should succeed and the calls that should be rejected. Each request checks its expected status code (and sometimes a value in the body), so a run shows pass or fail per call.
+
+- **Postman:** use the desktop app (Postman on the web can't reach `localhost` without its agent). Import the file, then Run collection.
+- **Terminal:** `npx newman run tests/stayfinder.postman_collection.json` (here in `backend/`)
+
+Run it top to bottom, with the backend running and a fresh seed (the 3 steps above). Postman keeps the session cookie between requests, like a browser. Each run registers one new `user<timestamp>@stayfinder.test` and deletes everything else it creates, so it can be run again.
