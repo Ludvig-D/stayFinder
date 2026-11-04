@@ -342,7 +342,7 @@ end $$;
 
 ---------- A booking whose check-in has passed (VG5) ----------
 -- Our own rules won't let anyone create one, so insert it as postgres with bookings_time off
--- (same trick as seed_past_booking.sql).
+-- (same trick as supabase/seed/past_booking.sql).
 reset role;
 
 alter table public.bookings disable trigger bookings_time;

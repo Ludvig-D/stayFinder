@@ -1,4 +1,5 @@
--- VG5 test data: a booking whose check-in has already passed. Run after `npm run seed` (in backend/).
+-- Step 3 of 3 of seeding: VG5 test data, a booking whose check-in has already passed.
+-- Run in the Supabase SQL editor (as postgres), after reset.sql and `npm run seed` (in backend/).
 -- Our own rules won't let anyone create one, so we insert it as postgres
 -- with only the bookings_time trigger switched off, inside one transaction.
 -- The other triggers still run, so the price is still computed by the database.

@@ -105,7 +105,7 @@ POST {{baseUrl}}/auth/logout
 
 ###############################################################################
 # Listings (G4, G5, G6, G8, G14, VG1)
-# Needs `npm run seed` and supabase/tests/seed_past_booking.sql to have been run.
+# Needs a fresh seed: supabase/seed/reset.sql, `npm run seed`, supabase/seed/past_booking.sql (see backend/README.md).
 # Starts logged out (the auth section ends with a logout).
 ###############################################################################
 
@@ -499,7 +499,7 @@ Content-Type: application/json
 ### FAIL: delete a booking that doesn't exist -> 404
 DELETE {{baseUrl}}/bookings/00000000-0000-4000-8000-000000000000
 
-### Sara's bookings on "Seaside house" -> 200, two: [0] has already started (seed_past_booking.sql), [1] is in the future
+### Sara's bookings on "Seaside house" -> 200, two: [0] has already started (supabase/seed/past_booking.sql), [1] is in the future
 # @name seasideBookings
 GET {{baseUrl}}/listings/{{seaside.response.body.$[0].id}}/bookings
 
