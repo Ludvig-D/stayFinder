@@ -10,3 +10,11 @@ node_modules/
 .DS_Store
 .vscode/
 .idea/
+
+# LLM / AI assistant files (kept locally, not committed)
+CLAUDE.md
+AGENTS.md
+PROJECT.md
+specs/
+.claude/
+.mcp.json
