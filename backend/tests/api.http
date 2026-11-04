@@ -1,5 +1,7 @@
-# StayFinder API test calls (VS Code REST Client or httpyac).
-# Run top to bottom: the client keeps the session cookies between calls, like a browser.
+# StayFinder API test calls, written for httpyac (VS Code extension "httpYac" or the CLI).
+# Run all from the terminal in backend/: npx httpyac send tests/api.http --all
+# Run top to bottom: httpyac keeps the session cookies between calls, like a browser.
+# A "# @name x" call saves its JSON body as x, so later calls can use {{x.id}} or {{x[0].id}}.
 # Every call has a comment with the expected status.
 
 @baseUrl = http://localhost:3001
@@ -33,7 +35,7 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "{{register.response.body.email}}",
+  "email": "{{register.email}}",
   "password": "password123"
 }
 
@@ -81,7 +83,7 @@ POST {{baseUrl}}/auth/register
 Content-Type: application/json
 
 {
-  "email": "{{register.response.body.email}}",
+  "email": "{{register.email}}",
   "password": "password123"
 }
 
@@ -90,7 +92,7 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "{{register.response.body.email}}",
+  "email": "{{register.email}}",
   "password": "wrongpassword"
 }
 
@@ -136,7 +138,7 @@ GET {{baseUrl}}/listings?location=göteborg
 GET {{baseUrl}}/listings?location=visby
 
 ### Detail page -> 200
-GET {{baseUrl}}/listings/{{haga.response.body.$[0].id}}
+GET {{baseUrl}}/listings/{{haga[0].id}}
 
 ### FAIL: max price that isn't a number -> 400
 GET {{baseUrl}}/listings?maxPrice=abc
@@ -165,13 +167,13 @@ Content-Type: application/json
 }
 
 ### FAIL: update a listing logged out -> 401
-PATCH {{baseUrl}}/listings/{{haga.response.body.$[0].id}}
+PATCH {{baseUrl}}/listings/{{haga[0].id}}
 Content-Type: application/json
 
 { "price_per_night": 1 }
 
 ### FAIL: delete a listing logged out -> 401
-DELETE {{baseUrl}}/listings/{{haga.response.body.$[0].id}}
+DELETE {{baseUrl}}/listings/{{haga[0].id}}
 
 ### Log in as anna -> 200
 POST {{baseUrl}}/auth/login
@@ -193,11 +195,11 @@ Content-Type: application/json
   "location": "Uppsala",
   "price_per_night": 700,
   "max_guests": 3,
-  "owner_id": "{{haga.response.body.$[0].owner_id}}"
+  "owner_id": "{{haga[0].owner_id}}"
 }
 
 ### Update your own listing -> 200 with price_per_night 750
-PATCH {{baseUrl}}/listings/{{newListing.response.body.id}}
+PATCH {{baseUrl}}/listings/{{newListing.id}}
 Content-Type: application/json
 
 { "price_per_night": 750 }
@@ -291,22 +293,22 @@ Content-Type: application/json
 hello
 
 ### FAIL: update with nothing to change -> 400
-PATCH {{baseUrl}}/listings/{{newListing.response.body.id}}
+PATCH {{baseUrl}}/listings/{{newListing.id}}
 Content-Type: application/json
 
 {}
 
 ### FAIL: anna updates erik's listing -> 403 (VG1, the DB's update policy changes 0 rows)
-PATCH {{baseUrl}}/listings/{{haga.response.body.$[0].id}}
+PATCH {{baseUrl}}/listings/{{haga[0].id}}
 Content-Type: application/json
 
 { "price_per_night": 1 }
 
 ### FAIL: anna deletes erik's listing -> 403 (VG1)
-DELETE {{baseUrl}}/listings/{{haga.response.body.$[0].id}}
+DELETE {{baseUrl}}/listings/{{haga[0].id}}
 
 ### Erik's listing is unchanged after the two calls above -> 200, price_per_night still 800
-GET {{baseUrl}}/listings/{{haga.response.body.$[0].id}}
+GET {{baseUrl}}/listings/{{haga[0].id}}
 
 ### FAIL: update a listing that doesn't exist -> 404
 PATCH {{baseUrl}}/listings/00000000-0000-4000-8000-000000000000
@@ -318,10 +320,10 @@ Content-Type: application/json
 DELETE {{baseUrl}}/listings/00000000-0000-4000-8000-000000000000
 
 ### Delete your own listing -> 204
-DELETE {{baseUrl}}/listings/{{newListing.response.body.id}}
+DELETE {{baseUrl}}/listings/{{newListing.id}}
 
 ### The deleted listing is gone -> 404
-GET {{baseUrl}}/listings/{{newListing.response.body.id}}
+GET {{baseUrl}}/listings/{{newListing.id}}
 
 ### Log out anna, log in as erik -> 204, then 200
 POST {{baseUrl}}/auth/logout
@@ -336,7 +338,7 @@ Content-Type: application/json
 }
 
 ### FAIL: erik deletes "Seaside house", which has a started booking -> 409
-DELETE {{baseUrl}}/listings/{{seaside.response.body.$[0].id}}
+DELETE {{baseUrl}}/listings/{{seaside[0].id}}
 
 ### Log out erik -> 204
 POST {{baseUrl}}/auth/logout
@@ -357,10 +359,10 @@ GET {{baseUrl}}/listings?location=malmö
 GET {{baseUrl}}/listings?location=åre
 
 ### FAIL: list bookings logged out -> 401
-GET {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+GET {{baseUrl}}/listings/{{malmo[0].id}}/bookings
 
 ### FAIL: book logged out -> 401
-POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+POST {{baseUrl}}/listings/{{malmo[0].id}}/bookings
 Content-Type: application/json
 
 { "email": "sara@stayfinder.test", "check_in": "{{$datetime "YYYY-MM-DD" 60 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 63 d}}", "guests": 3 }
@@ -385,68 +387,75 @@ Content-Type: application/json
 
 ### Sara books Malmö, 3 nights, 3 guests -> 201, total_price 3300 (VG6: 3 x 1100), guest_id = sara
 # @name saraBooking
-POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+POST {{baseUrl}}/listings/{{malmo[0].id}}/bookings
 Content-Type: application/json
 
 { "email": "sara@stayfinder.test", "check_in": "{{$datetime "YYYY-MM-DD" 60 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 63 d}}", "guests": 3 }
 
 ### Book with a fake price in the body -> 201, total_price 1100 (1 night), not 1 (VG6)
 # @name pricedBooking
-POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+POST {{baseUrl}}/listings/{{malmo[0].id}}/bookings
 Content-Type: application/json
 
 { "email": "sara@stayfinder.test", "check_in": "{{$datetime "YYYY-MM-DD" 70 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 71 d}}", "guests": 1, "total_price": 1 }
 
 ### FAIL: zero guests -> 400, details.guests: "At least 1 guest is required" (G10)
-POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+POST {{baseUrl}}/listings/{{malmo[0].id}}/bookings
 Content-Type: application/json
 
 { "email": "sara@stayfinder.test", "check_in": "{{$datetime "YYYY-MM-DD" 80 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 81 d}}", "guests": 0 }
 
 ### FAIL: invalid email -> 400, details.email: "Enter a valid email address" (G10)
-POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+POST {{baseUrl}}/listings/{{malmo[0].id}}/bookings
 Content-Type: application/json
 
 { "email": "not-an-email", "check_in": "{{$datetime "YYYY-MM-DD" 80 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 81 d}}", "guests": 1 }
 
 ### FAIL: check-out before check-in -> 400, details.check_out: "Check-out must be after check-in" (G10)
-POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+POST {{baseUrl}}/listings/{{malmo[0].id}}/bookings
 Content-Type: application/json
 
 { "email": "sara@stayfinder.test", "check_in": "{{$datetime "YYYY-MM-DD" 81 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 80 d}}", "guests": 1 }
 
 ### FAIL: a date that isn't YYYY-MM-DD -> 400, details.check_in: "Choose a check-in date" (G10)
-POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+POST {{baseUrl}}/listings/{{malmo[0].id}}/bookings
 Content-Type: application/json
 
 { "email": "sara@stayfinder.test", "check_in": "tomorrow", "check_out": "{{$datetime "YYYY-MM-DD" 81 d}}", "guests": 1 }
 
 ### FAIL: guests not a whole number -> 400, details.guests: "Guests must be a whole number" (G10)
-POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+POST {{baseUrl}}/listings/{{malmo[0].id}}/bookings
 Content-Type: application/json
 
 { "email": "sara@stayfinder.test", "check_in": "{{$datetime "YYYY-MM-DD" 80 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 81 d}}", "guests": 1.5 }
 
 ### FAIL: email missing -> 400, details.email: "Enter a valid email address" (G10)
-POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+POST {{baseUrl}}/listings/{{malmo[0].id}}/bookings
 Content-Type: application/json
 
 { "check_in": "{{$datetime "YYYY-MM-DD" 80 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 81 d}}", "guests": 1 }
 
 ### FAIL: check-in missing -> 400, details.check_in: "Choose a check-in date" (G10)
-POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+POST {{baseUrl}}/listings/{{malmo[0].id}}/bookings
 Content-Type: application/json
 
 { "email": "sara@stayfinder.test", "check_out": "{{$datetime "YYYY-MM-DD" 81 d}}", "guests": 1 }
 
 ### FAIL: 5 guests, Malmö allows 4 -> 400 "This listing allows at most 4 guests" (VG3, checked in the DB)
-POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+POST {{baseUrl}}/listings/{{malmo[0].id}}/bookings
 Content-Type: application/json
 
 { "email": "sara@stayfinder.test", "check_in": "{{$datetime "YYYY-MM-DD" 80 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 81 d}}", "guests": 5 }
 
+### FAIL: 5 guests, and the client claims the listing allows 10 -> 400 "This listing allows at most 4 guests"
+# VG3: the DB reads max_guests from the listing row, so a max_guests sent in the body has no effect
+POST {{baseUrl}}/listings/{{malmo[0].id}}/bookings
+Content-Type: application/json
+
+{ "email": "sara@stayfinder.test", "check_in": "{{$datetime "YYYY-MM-DD" 80 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 81 d}}", "guests": 5, "max_guests": 10 }
+
 ### FAIL: check-in yesterday -> 400 "Check-in date has already passed" (VG5, checked in the DB)
-POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+POST {{baseUrl}}/listings/{{malmo[0].id}}/bookings
 Content-Type: application/json
 
 { "email": "sara@stayfinder.test", "check_in": "{{$datetime "YYYY-MM-DD" -1 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 2 d}}", "guests": 1 }
@@ -461,31 +470,37 @@ Content-Type: application/json
 GET {{baseUrl}}/listings/00000000-0000-4000-8000-000000000000/bookings
 
 ### Edit own booking onto dates that overlap its old ones -> 200, total_price still 3300 (VG2: no clash with itself)
-PATCH {{baseUrl}}/bookings/{{saraBooking.response.body.id}}
+PATCH {{baseUrl}}/bookings/{{saraBooking.id}}
 Content-Type: application/json
 
 { "check_in": "{{$datetime "YYYY-MM-DD" 61 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 64 d}}" }
 
 ### Edit to 4 nights -> 200, total_price 4400 (VG6: recomputed from the new dates)
-PATCH {{baseUrl}}/bookings/{{saraBooking.response.body.id}}
+PATCH {{baseUrl}}/bookings/{{saraBooking.id}}
 Content-Type: application/json
 
 { "check_out": "{{$datetime "YYYY-MM-DD" 65 d}}" }
 
+### FAIL: edit own booking to 5 guests, Malmö allows 4 -> 400 "This listing allows at most 4 guests" (VG3 on edit)
+PATCH {{baseUrl}}/bookings/{{saraBooking.id}}
+Content-Type: application/json
+
+{ "guests": 5 }
+
 ### FAIL: edit with nothing to change -> 400
-PATCH {{baseUrl}}/bookings/{{saraBooking.response.body.id}}
+PATCH {{baseUrl}}/bookings/{{saraBooking.id}}
 Content-Type: application/json
 
 {}
 
 ### FAIL: un-cancel -> 400 (only "cancelled" is accepted)
-PATCH {{baseUrl}}/bookings/{{saraBooking.response.body.id}}
+PATCH {{baseUrl}}/bookings/{{saraBooking.id}}
 Content-Type: application/json
 
 { "status": "active" }
 
 ### FAIL: cancel and edit in one call -> 400
-PATCH {{baseUrl}}/bookings/{{saraBooking.response.body.id}}
+PATCH {{baseUrl}}/bookings/{{saraBooking.id}}
 Content-Type: application/json
 
 { "status": "cancelled", "guests": 2 }
@@ -501,22 +516,22 @@ DELETE {{baseUrl}}/bookings/00000000-0000-4000-8000-000000000000
 
 ### Sara's bookings on "Seaside house" -> 200, two: [0] has already started (supabase/seed/past_booking.sql), [1] is in the future
 # @name seasideBookings
-GET {{baseUrl}}/listings/{{seaside.response.body.$[0].id}}/bookings
+GET {{baseUrl}}/listings/{{seaside[0].id}}/bookings
 
 ### FAIL: edit a booking that has already started -> 400 (VG5)
-PATCH {{baseUrl}}/bookings/{{seasideBookings.response.body.$[0].id}}
+PATCH {{baseUrl}}/bookings/{{seasideBookings[0].id}}
 Content-Type: application/json
 
 { "guests": 1 }
 
 ### FAIL: cancel a booking that has already started -> 400 (VG5)
-PATCH {{baseUrl}}/bookings/{{seasideBookings.response.body.$[0].id}}
+PATCH {{baseUrl}}/bookings/{{seasideBookings[0].id}}
 Content-Type: application/json
 
 { "status": "cancelled" }
 
 ### FAIL: delete a booking that has already started -> 400 (VG5)
-DELETE {{baseUrl}}/bookings/{{seasideBookings.response.body.$[0].id}}
+DELETE {{baseUrl}}/bookings/{{seasideBookings[0].id}}
 
 ### Log out sara, log in as anna -> 204, then 200
 POST {{baseUrl}}/auth/logout
@@ -532,43 +547,43 @@ Content-Type: application/json
 
 ### Anna books Malmö on sara's check-out day -> 201 (VG2: check-out day is free, '[)')
 # @name annaBooking
-POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+POST {{baseUrl}}/listings/{{malmo[0].id}}/bookings
 Content-Type: application/json
 
 { "email": "anna@stayfinder.test", "check_in": "{{$datetime "YYYY-MM-DD" 65 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 67 d}}", "guests": 2 }
 
 ### FAIL: anna books dates inside sara's booking -> 409 (VG2)
-POST {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+POST {{baseUrl}}/listings/{{malmo[0].id}}/bookings
 Content-Type: application/json
 
 { "email": "anna@stayfinder.test", "check_in": "{{$datetime "YYYY-MM-DD" 62 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 63 d}}", "guests": 2 }
 
 ### FAIL: anna moves her booking one day earlier, into sara's -> 409 (VG2 on edit)
-PATCH {{baseUrl}}/bookings/{{annaBooking.response.body.id}}
+PATCH {{baseUrl}}/bookings/{{annaBooking.id}}
 Content-Type: application/json
 
 { "check_in": "{{$datetime "YYYY-MM-DD" 64 d}}" }
 
 ### Anna sees only her own booking on Malmö, not sara's -> 200, one booking (VG1)
-GET {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+GET {{baseUrl}}/listings/{{malmo[0].id}}/bookings
 
 ### FAIL: anna books her own listing -> 403
-POST {{baseUrl}}/listings/{{are.response.body.$[0].id}}/bookings
+POST {{baseUrl}}/listings/{{are[0].id}}/bookings
 Content-Type: application/json
 
 { "email": "anna@stayfinder.test", "check_in": "{{$datetime "YYYY-MM-DD" 90 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 91 d}}", "guests": 1 }
 
 ### FAIL: anna edits sara's booking, which she can't see -> 404 (VG1, not 403: bookings are private)
-PATCH {{baseUrl}}/bookings/{{seasideBookings.response.body.$[1].id}}
+PATCH {{baseUrl}}/bookings/{{seasideBookings[1].id}}
 Content-Type: application/json
 
 { "guests": 1 }
 
 ### FAIL: anna deletes sara's booking -> 404 (VG1)
-DELETE {{baseUrl}}/bookings/{{seasideBookings.response.body.$[1].id}}
+DELETE {{baseUrl}}/bookings/{{seasideBookings[1].id}}
 
 ### Anna deletes her own booking -> 204
-DELETE {{baseUrl}}/bookings/{{annaBooking.response.body.id}}
+DELETE {{baseUrl}}/bookings/{{annaBooking.id}}
 
 ### Log out anna, log in as erik -> 204, then 200
 POST {{baseUrl}}/auth/logout
@@ -583,16 +598,33 @@ Content-Type: application/json
 }
 
 ### Erik owns Malmö, so he sees sara's two bookings on it -> 200 (VG1)
-GET {{baseUrl}}/listings/{{malmo.response.body.$[0].id}}/bookings
+GET {{baseUrl}}/listings/{{malmo[0].id}}/bookings
 
 ### FAIL: erik (the owner) edits sara's booking on his listing -> 403 (VG1: the owner can only read)
-PATCH {{baseUrl}}/bookings/{{seasideBookings.response.body.$[1].id}}
+PATCH {{baseUrl}}/bookings/{{seasideBookings[1].id}}
 Content-Type: application/json
 
 { "guests": 1 }
 
 ### FAIL: erik (the owner) deletes sara's booking -> 403 (VG1)
-DELETE {{baseUrl}}/bookings/{{seasideBookings.response.body.$[1].id}}
+DELETE {{baseUrl}}/bookings/{{seasideBookings[1].id}}
+
+### Erik raises the Malmö price from 1100 to 2000 per night -> 200
+# The next call checks that this doesn't touch the existing bookings (VG6)
+PATCH {{baseUrl}}/listings/{{malmo[0].id}}
+Content-Type: application/json
+
+{ "price_per_night": 2000 }
+
+### Sara's bookings on Malmö after the price change -> 200, total_price still 4400 and 1100 (VG6)
+# total_price was saved on the booking when it was made, so a later price change doesn't affect it
+GET {{baseUrl}}/listings/{{malmo[0].id}}/bookings
+
+### Erik sets the Malmö price back to 1100 -> 200 (so the file can be run again)
+PATCH {{baseUrl}}/listings/{{malmo[0].id}}
+Content-Type: application/json
+
+{ "price_per_night": 1100 }
 
 ### Log out erik, log in as sara -> 204, then 200
 POST {{baseUrl}}/auth/logout
@@ -607,16 +639,26 @@ Content-Type: application/json
 }
 
 ### Sara cancels her Malmö booking -> 200, status "cancelled"
-PATCH {{baseUrl}}/bookings/{{saraBooking.response.body.id}}
+PATCH {{baseUrl}}/bookings/{{saraBooking.id}}
 Content-Type: application/json
 
 { "status": "cancelled" }
 
-### Sara deletes it -> 204
-DELETE {{baseUrl}}/bookings/{{saraBooking.response.body.id}}
+### Book the exact dates of the cancelled booking -> 201, total_price 4400 (VG2: cancelled bookings don't block dates)
+# @name rebooked
+POST {{baseUrl}}/listings/{{malmo[0].id}}/bookings
+Content-Type: application/json
+
+{ "email": "sara@stayfinder.test", "check_in": "{{$datetime "YYYY-MM-DD" 61 d}}", "check_out": "{{$datetime "YYYY-MM-DD" 65 d}}", "guests": 3 }
+
+### Sara deletes the cancelled booking -> 204
+DELETE {{baseUrl}}/bookings/{{saraBooking.id}}
+
+### Sara deletes the new booking on the same dates -> 204
+DELETE {{baseUrl}}/bookings/{{rebooked.id}}
 
 ### Sara deletes the fake-price booking -> 204
-DELETE {{baseUrl}}/bookings/{{pricedBooking.response.body.id}}
+DELETE {{baseUrl}}/bookings/{{pricedBooking.id}}
 
 ### Log out sara -> 204
 POST {{baseUrl}}/auth/logout

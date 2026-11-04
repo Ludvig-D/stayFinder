@@ -41,6 +41,6 @@ Run each from its own folder (npm, no workspaces):
 - Backend (`backend/`, http://localhost:3001): `npm run dev` · `npm run build` · typecheck `npx tsc --noEmit`
 - Frontend (`frontend/`, http://localhost:3000): `npm run dev` · `npm run build` · `npm run lint` · typecheck `npx tsc --noEmit`
 - Supabase types: `npx supabase gen types typescript --project-id <id>` (run in `backend/`)
-- API tests: `backend/tests/api.http` (VS Code REST Client or httpyac), run top to bottom with the backend running
+- API tests: `backend/tests/api.http` (httpyac syntax: VS Code "httpYac" extension, or `npx httpyac send tests/api.http --all` in `backend/`), run top to bottom with the backend running. Not VS Code REST Client: its `{{name.response.body...}}` syntax differs
 
 Git: `CLAUDE.md`, `PROJECT.md`, `specs/`, `.claude/` and `.mcp.json` are committed, so the spec-driven process is part of the repo.
