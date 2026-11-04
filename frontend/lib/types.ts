@@ -76,3 +76,9 @@ export type ListingFilters = {
   guests?: string
   sort?: string
 }
+
+// One row from GET /me/bookings: a booking with the listing it's for joined in,
+// so "My bookings" can show the listing's name without fetching each listing
+export type MyBooking = Booking & {
+  listing: Pick<Listing, 'id' | 'title' | 'location'>
+}

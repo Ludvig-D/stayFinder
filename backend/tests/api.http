@@ -662,3 +662,51 @@ DELETE {{baseUrl}}/bookings/{{pricedBooking.id}}
 
 ### Log out sara -> 204
 POST {{baseUrl}}/auth/logout
+
+###############################################################################
+# My page: GET /me/listings and /me/bookings (extra, shows VG1 in one place)
+###############################################################################
+
+### FAIL: my listings, logged out -> 401
+GET {{baseUrl}}/me/listings
+
+### FAIL: my bookings, logged out -> 401
+GET {{baseUrl}}/me/bookings
+
+### Log in as anna -> 200
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "anna@stayfinder.test",
+  "password": "password123"
+}
+
+### Anna's listings -> 200, her 4 listings (Åre, Stockholm ×2, Rättvik), all with owner_id = anna
+GET {{baseUrl}}/me/listings
+
+### Anna's bookings -> 200, only bookings she made as a guest (guest_id = anna)
+# RLS would also let her read the bookings other guests made on her listings. The guest_id filter
+# leaves those out: they're not "my bookings". Each row has listing.title and listing.location.
+GET {{baseUrl}}/me/bookings
+
+### Log out anna, log in as sara -> 204, then 200
+POST {{baseUrl}}/auth/logout
+
+###
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "sara@stayfinder.test",
+  "password": "password123"
+}
+
+### Sara's listings -> 200, [] (she owns none)
+GET {{baseUrl}}/me/listings
+
+### Sara's bookings -> 200, includes the started Seaside booking (check-in in the past), each with listing.title
+GET {{baseUrl}}/me/bookings
+
+### Log out sara -> 204
+POST {{baseUrl}}/auth/logout

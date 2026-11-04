@@ -26,7 +26,8 @@ export function Navbar() {
           {user ? (
             <>
               <Link href="/listings/new" className="text-lake hover:underline">New listing</Link>
-              <span className="text-fog">{user.email}</span>
+              {/* The email leads to "My page": my listings and my bookings */}
+              <Link href="/me" className="text-fog hover:text-birch hover:underline">{user.email}</Link>
               <button onClick={handleLogout} className="text-lake hover:underline">
                 Log out
               </button>
