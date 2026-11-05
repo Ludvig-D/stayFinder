@@ -4,7 +4,7 @@ StayFinder is a full-stack booking service where users can find places to stay a
 
 ## About the project
 
-This is an **individual, graded school assignment** for the course **Backend 2 (TypeScript)** at **Nackademin** (graded IG / G / VG). The task was to build a booking service with both a backend and a frontend that work together, and to be able to explain what happens in the frontend, in the API and in the database, and why.
+This is an **individual, graded school assignment** for the course **Backend 2 (TypeScript)** at **Nackademin – Webb25** (graded IG / G / VG). The task was to build a booking service with both a backend and a frontend that work together, and to be able to explain what happens in the frontend, in the API and in the database, and why.
 
 The project was built from scratch using the same stack as the course:
 
